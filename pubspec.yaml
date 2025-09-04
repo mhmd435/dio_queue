@@ -11,7 +11,7 @@ dependencies:
   flutter:
     sdk: flutter
   dio: ^5.4.0
-  connectivity_plus: ^5.0.2
+  connectivity_plus: ^6.1.5
   hive: ^2.2.3
   meta: ^1.10.0
 
