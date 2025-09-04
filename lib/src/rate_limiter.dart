@@ -6,14 +6,18 @@ import 'queue_config.dart';
 
 /// Simple token bucket rate limiter.
 class RateLimiter {
+  /// Optional limit configuration; if `null` no throttling is applied.
   final RateLimit? limit;
+
   int _tokens = 0;
   DateTime _lastRefill = DateTime.now();
 
+  /// Creates a limiter using [limit].
   RateLimiter(this.limit) {
     _tokens = limit?.requestsPerPeriod ?? 0;
   }
 
+  /// Consumes a token waiting as necessary to respect the rate limit.
   Future<void> take() async {
     final l = limit;
     if (l == null) return;

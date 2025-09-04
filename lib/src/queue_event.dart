@@ -5,6 +5,7 @@ import 'queue_job.dart';
 
 /// Event emitted for job state changes.
 class QueueEvent {
+  /// The job whose state changed.
   final QueueJob job;
 
   /// The Dio [Response] associated with the job, if available.
@@ -14,6 +15,7 @@ class QueueEvent {
   /// such as when a job is enqueued or starts running.
   final Response? response;
 
+  /// Creates an event for [job] optionally carrying a [response].
   QueueEvent(this.job, [this.response]);
 
   @override
