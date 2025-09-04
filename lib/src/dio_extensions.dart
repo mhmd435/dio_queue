@@ -1,6 +1,8 @@
+/// Convenience extensions for converting Dio requests into queue jobs.
 import 'package:dio/dio.dart';
 
 import 'queue_job.dart';
+import 'http_method.dart';
 
 extension RequestOptionsQueue on RequestOptions {
   /// Creates a [QueueJob] from these options.
@@ -13,7 +15,7 @@ extension RequestOptionsQueue on RequestOptions {
   }) {
     return QueueJob(
       id: id,
-      method: method,
+      method: HttpMethodX.fromString(method),
       url: path,
       headers: headers.map((k, v) => MapEntry(k, v)),
       body: data,

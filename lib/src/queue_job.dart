@@ -1,11 +1,13 @@
+/// Data model representing a request scheduled for later execution.
 import 'dart:convert';
 
 import 'queue_config.dart';
+import 'http_method.dart';
 
 /// Model representing an enqueued request.
 class QueueJob {
   final String id;
-  final String method;
+  final HttpMethod method;
   final String url;
   final Map<String, dynamic>? headers;
   final dynamic body;
@@ -45,7 +47,7 @@ class QueueJob {
   String get fingerprint {
     if (idempotencyKey != null) return idempotencyKey!;
     final payload = jsonEncode({
-      'm': method,
+      'm': method.value,
       'u': url,
       'h': headers,
       'b': body,
@@ -56,7 +58,7 @@ class QueueJob {
 
   Map<String, dynamic> toJson() => {
         'id': id,
-        'method': method,
+        'method': method.value,
         'url': url,
         'headers': headers,
         'body': body,
@@ -75,7 +77,7 @@ class QueueJob {
 
   static QueueJob fromJson(Map<String, dynamic> json) => QueueJob(
         id: json['id'] as String,
-        method: json['method'] as String,
+        method: HttpMethodX.fromString(json['method'] as String),
         url: json['url'] as String,
         headers: (json['headers'] as Map?)?.cast<String, dynamic>(),
         body: json['body'],

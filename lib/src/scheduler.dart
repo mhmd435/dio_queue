@@ -1,3 +1,4 @@
+/// Core scheduler responsible for executing queued jobs.
 import 'dart:async';
 import 'dart:math';
 
@@ -12,6 +13,7 @@ import 'queue_event.dart';
 import 'queue_job.dart';
 import 'queue_storage.dart';
 import 'rate_limiter.dart';
+import 'http_method.dart';
 
 class Scheduler {
   final Dio dio;
@@ -126,7 +128,7 @@ class Scheduler {
     while (true) {
       await _rateLimiter.take();
       try {
-        final opts = Options(method: job.method, headers: job.headers);
+        final opts = Options(method: job.method.value, headers: job.headers);
         final res = await dio.request(
           job.url,
           data: job.body,

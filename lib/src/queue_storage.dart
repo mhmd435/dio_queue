@@ -1,3 +1,4 @@
+/// Interface describing storage for persisted queue jobs.
 import 'queue_job.dart';
 
 /// Storage backend for persisting jobs.

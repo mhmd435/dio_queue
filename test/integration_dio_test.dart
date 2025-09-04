@@ -20,7 +20,7 @@ void main() {
       config: QueueConfig(retry: RetryPolicy(maxAttempts: 3, baseDelay: const Duration(milliseconds: 10), jitter: 0)),
     );
     final future = queue.events.firstWhere((e) => e.job.state == JobState.succeeded);
-    queue.enqueueRequest(method: 'GET', url: '/');
+    queue.enqueueRequest(method: HttpMethod.get, url: '/');
     final event = await future;
     expect(event.job.attempts, 2);
     expect(attempts, 2);

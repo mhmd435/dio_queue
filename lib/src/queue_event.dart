@@ -1,3 +1,4 @@
+/// Events describing changes to queue job state.
 import 'queue_job.dart';
 
 /// Event emitted for job state changes.

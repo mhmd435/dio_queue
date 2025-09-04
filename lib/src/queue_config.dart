@@ -1,3 +1,4 @@
+/// Shared configuration models for the queue and retry behaviour.
 import 'package:dio/dio.dart';
 
 /// Signature deciding whether a request should retry.
