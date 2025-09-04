@@ -22,7 +22,12 @@ final queue = FlutterDioQueue(
 );
 
 queue.enqueueRequest(method: 'POST', url: '/notes', data: {'title': 'Hello'});
-queue.events.listen((e) => debugPrint('Queue: $e'));
+queue.events.listen((e) {
+  debugPrint('Queue: $e');
+  if (e.response != null) {
+    debugPrint('Response data: ${e.response!.data}');
+  }
+});
 ```
 
 See `example/` for a runnable demo and `test/` for usage scenarios.

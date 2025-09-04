@@ -24,5 +24,7 @@ void main() {
     final event = await future;
     expect(event.job.attempts, 2);
     expect(attempts, 2);
+    expect(event.response?.statusCode, 200);
+    expect(event.response?.data, 'ok');
   });
 }
