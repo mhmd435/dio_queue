@@ -1,5 +1,5 @@
 name: dio_queue
-description: "A new Flutter project."
+description: A sequential request queue for the Dio HTTP client.
 version: 0.0.1
 homepage:
 
@@ -10,6 +10,7 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  dio: ^5.4.0
 
 dev_dependencies:
   flutter_test:
