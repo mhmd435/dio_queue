@@ -125,6 +125,7 @@ class Scheduler {
     _emitEvent(job);
     _updateMetrics();
 
+    Response? response;
     while (true) {
       await _rateLimiter.take();
       try {
@@ -137,6 +138,7 @@ class Scheduler {
           cancelToken: token,
         );
         job.attempts++;
+        response = res;
         if (config.retry.shouldRetry(res, null) &&
             job.attempts < config.retry.maxAttempts) {
           final delay = computeBackoff(config.retry, job.attempts);
@@ -151,7 +153,8 @@ class Scheduler {
       } on DioException catch (e) {
         job.attempts++;
         job.lastError = e;
-        if (config.retry.shouldRetry(null, e) &&
+        response = e.response;
+        if (config.retry.shouldRetry(e.response, e) &&
             job.attempts < config.retry.maxAttempts) {
           final delay = computeBackoff(config.retry, job.attempts);
           logger.log('Retrying ${job.id} after error in ${delay.inMilliseconds}ms');
@@ -166,13 +169,13 @@ class Scheduler {
     }
     _running.remove(job.id);
     _fingerprints.remove(job.fingerprint);
-    _emitEvent(job);
+    _emitEvent(job, response);
     _updateMetrics();
     _trySchedule();
   }
 
-  void _emitEvent(QueueJob job) {
-    _events.add(QueueEvent(job));
+  void _emitEvent(QueueJob job, [Response? response]) {
+    _events.add(QueueEvent(job, response));
   }
 
   void _updateMetrics() {

@@ -15,5 +15,7 @@ void main() {
     queue.enqueueRequest(method: HttpMethod.get, url: '/');
     final event = await future;
     expect(event.job.state, JobState.succeeded);
+    expect(event.response?.statusCode, 200);
+    expect(event.response?.data, 'ok');
   });
 }
