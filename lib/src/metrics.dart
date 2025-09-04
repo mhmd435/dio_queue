@@ -1,11 +1,21 @@
 /// Basic metrics exposed by the queue.
 class QueueMetrics {
+  /// Number of jobs currently queued.
   final int queued;
+
+  /// Number of jobs currently executing.
   final int running;
+
+  /// Number of jobs that have succeeded.
   final int succeeded;
+
+  /// Number of jobs that have failed permanently.
   final int failed;
+
+  /// Number of jobs delayed due to rate limiting.
   final int rateLimited;
 
+  /// Creates a new metrics snapshot.
   const QueueMetrics({
     this.queued = 0,
     this.running = 0,
@@ -14,6 +24,7 @@ class QueueMetrics {
     this.rateLimited = 0,
   });
 
+  /// Returns a copy with the provided fields updated.
   QueueMetrics copyWith({
     int? queued,
     int? running,

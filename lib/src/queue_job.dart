@@ -6,40 +6,102 @@ import 'http_method.dart';
 
 /// Model representing an enqueued request.
 class QueueJob {
+  /// Unique identifier for the job.
   final String id;
+
+  /// HTTP method to execute.
   final HttpMethod method;
+
+  /// Target URL path.
   final String url;
+
+  /// Optional request headers.
   final Map<String, dynamic>? headers;
+
+  /// Request payload body.
   final dynamic body;
+
+  /// Query parameters to append to the URL.
   final Map<String, dynamic>? query;
+
+  /// Optional key used for deduplication across runs.
   final String? idempotencyKey;
+
+  /// Arbitrary tags associated with the job.
   final Set<String> tags;
+
+  /// Higher values are scheduled before lower ones.
   final int priority;
+
+  /// Optional timeout applied to the request.
   final Duration? timeout;
 
+  /// Current state of the job in the queue.
   JobState state;
+
+  /// Number of attempts that have been made so far.
   int attempts;
+
+  /// When the job was first enqueued.
   DateTime enqueuedAt;
+
+  /// When execution started, if running.
   DateTime? startedAt;
+
+  /// When execution finished, if completed.
   DateTime? finishedAt;
+
+  /// Last error produced by the job, if any.
   Object? lastError;
 
+  /// Creates a new [QueueJob].
   QueueJob({
+    /// Identifier for this job.
     required this.id,
+
+    /// HTTP method to use.
     required this.method,
+
+    /// Endpoint URL path.
     required this.url,
+
+    /// Optional request headers.
     this.headers,
+
+    /// Request payload body.
     this.body,
+
+    /// Query parameters for the request.
     this.query,
+
+    /// Key used to deduplicate identical jobs.
     this.idempotencyKey,
+
+    /// Tags associated with the job.
     this.tags = const {},
+
+    /// Priority of the job; higher runs first.
     this.priority = 0,
+
+    /// Request timeout.
     this.timeout,
+
+    /// Initial state of the job.
     this.state = JobState.enqueued,
+
+    /// Number of attempts already made.
     this.attempts = 0,
+
+    /// Time the job was enqueued. Defaults to now.
     DateTime? enqueuedAt,
+
+    /// When execution started.
     this.startedAt,
+
+    /// When execution finished.
     this.finishedAt,
+
+    /// Last error produced.
     this.lastError,
   }) : enqueuedAt = enqueuedAt ?? DateTime.now();
 
@@ -56,6 +118,7 @@ class QueueJob {
     return base64Url.encode(utf8.encode(payload));
   }
 
+  /// Serialises this job into a JSON compatible map.
   Map<String, dynamic> toJson() => {
         'id': id,
         'method': method.value,
@@ -75,6 +138,7 @@ class QueueJob {
         'lastError': lastError?.toString(),
       };
 
+  /// Creates a [QueueJob] from previously serialised JSON.
   static QueueJob fromJson(Map<String, dynamic> json) => QueueJob(
         id: json['id'] as String,
         method: HttpMethodX.fromString(json['method'] as String),

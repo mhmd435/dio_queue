@@ -16,10 +16,19 @@ import 'rate_limiter.dart';
 import 'http_method.dart';
 
 class Scheduler {
+  /// Dio client used to perform HTTP requests.
   final Dio dio;
+
+  /// Storage backend for persisting jobs between runs.
   final QueueStorage storage;
+
+  /// Behavioural options for scheduling and retry.
   final QueueConfig config;
+
+  /// Logger used for diagnostic output.
   final QueueLogger logger;
+
+  /// Optional connectivity watcher to pause when offline.
   final ConnectivityWatcher? connectivity;
 
   final RateLimiter _rateLimiter;
@@ -33,6 +42,7 @@ class Scheduler {
   bool _paused = false;
   bool _online = true;
 
+  /// Creates a new scheduler instance.
   Scheduler({
     required this.dio,
     required this.storage,
@@ -52,9 +62,13 @@ class Scheduler {
     });
   }
 
+  /// Stream of job state change events.
   Stream<QueueEvent> get events => _events.stream;
+
+  /// Stream of queue metrics updates.
   Stream<QueueMetrics> get metrics => _metrics.stream;
 
+  /// Adds [job] to the queue and returns its id.
   Future<String> enqueue(QueueJob job) async {
     if (config.deduplicate) {
       final existing = _fingerprints[job.fingerprint];
@@ -69,6 +83,7 @@ class Scheduler {
     return job.id;
   }
 
+  /// Cancels the job identified by [id].
   Future<void> cancel(String id) async {
     final token = _running.remove(id);
     token?.cancel();
@@ -85,6 +100,7 @@ class Scheduler {
     _updateMetrics();
   }
 
+  /// Cancels all jobs carrying the specified [tag].
   Future<void> cancelByTag(String tag) async {
     final ids = _queue.where((j) => j.tags.contains(tag)).map((j) => j.id).toList();
     for (final id in ids) {
@@ -92,10 +108,12 @@ class Scheduler {
     }
   }
 
+  /// Pauses scheduling new jobs; running jobs continue.
   void pause() {
     _paused = true;
   }
 
+  /// Resumes scheduling after a pause.
   void resume() {
     _paused = false;
     _trySchedule();
