@@ -16,8 +16,8 @@ void main() {
     queue.events
         .where((e) => e.job.state == JobState.succeeded)
         .listen((e) => completed.add(e.job.url));
-    queue.enqueueRequest(method: 'GET', url: 'a', priority: 0);
-    queue.enqueueRequest(method: 'GET', url: 'b', priority: 5);
+    queue.enqueueRequest(method: HttpMethod.get, url: 'a', priority: 0);
+    queue.enqueueRequest(method: HttpMethod.get, url: 'b', priority: 5);
     await Future.delayed(const Duration(milliseconds: 100));
     expect(completed, ['b', 'a']);
   });
@@ -39,9 +39,9 @@ void main() {
         running--;
       }
     });
-    queue.enqueueRequest(method: 'GET', url: '1');
-    queue.enqueueRequest(method: 'GET', url: '2');
-    queue.enqueueRequest(method: 'GET', url: '3');
+    queue.enqueueRequest(method: HttpMethod.get, url: '1');
+    queue.enqueueRequest(method: HttpMethod.get, url: '2');
+    queue.enqueueRequest(method: HttpMethod.get, url: '3');
     await Future.delayed(const Duration(milliseconds: 200));
     expect(max, lessThanOrEqualTo(2));
   });

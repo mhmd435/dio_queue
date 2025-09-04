@@ -1,6 +1,8 @@
+/// Interceptor that diverts selected requests into the queue for later execution.
 import 'package:dio/dio.dart';
 
 import 'queue_client.dart';
+import 'http_method.dart';
 
 typedef QueuePredicate = bool Function(RequestOptions options);
 
@@ -19,7 +21,7 @@ class QueueInterceptor extends Interceptor {
   void onRequest(RequestOptions options, RequestInterceptorHandler handler) {
     if (predicate(options)) {
       queue.enqueueRequest(
-        method: options.method,
+        method: HttpMethodX.fromString(options.method),
         url: options.path,
         headers: Map<String, dynamic>.from(options.headers),
         data: options.data,

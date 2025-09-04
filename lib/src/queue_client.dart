@@ -1,3 +1,4 @@
+/// High-level API for interacting with the request queue.
 import 'dart:async';
 import 'package:dio/dio.dart';
 
@@ -10,6 +11,7 @@ import 'queue_job.dart';
 import 'queue_storage.dart';
 import 'memory_storage.dart';
 import 'scheduler.dart';
+import 'http_method.dart';
 
 /// Public facade for the queue system.
 class FlutterDioQueue {
@@ -56,7 +58,7 @@ class FlutterDioQueue {
 
   /// Convenience builder to enqueue a request without manual [QueueJob].
   String enqueueRequest({
-    required String method,
+    required HttpMethod method,
     required String url,
     Map<String, dynamic>? headers,
     dynamic data,

@@ -1,3 +1,4 @@
+/// Flutter bindings and exports for the dio queue package.
 library flutter_dio_queue;
 
 export 'src/queue_client.dart';
@@ -9,3 +10,4 @@ export 'src/hive_storage.dart';
 export 'src/logger.dart';
 export 'src/metrics.dart';
 export 'src/queue_interceptor.dart';
+export 'src/http_method.dart';

@@ -31,7 +31,8 @@ class _MyAppState extends State<MyApp> {
   }
 
   void _enqueue() {
-    queue.enqueueRequest(method: 'GET', url: '/delay/1', priority: enqueued++);
+    queue.enqueueRequest(
+        method: HttpMethod.get, url: '/delay/1', priority: enqueued++);
   }
 
   @override

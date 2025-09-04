@@ -5,7 +5,7 @@ void main() {
   test('memory storage basics', () async {
     final storage = MemoryQueueStorage();
     await storage.init();
-    final job = QueueJob(id: '1', method: 'GET', url: '/');
+    final job = QueueJob(id: '1', method: HttpMethod.get, url: '/');
     await storage.upsert(job);
     expect((await storage.getById('1'))?.id, '1');
     await storage.delete('1');

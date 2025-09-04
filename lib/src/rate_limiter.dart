@@ -1,3 +1,4 @@
+/// Token bucket based rate limiter for throttling job execution.
 import 'dart:async';
 import 'dart:math';
 

@@ -1,3 +1,4 @@
+/// In-memory implementation of the queue storage interface.
 import 'dart:async';
 
 import 'queue_job.dart';

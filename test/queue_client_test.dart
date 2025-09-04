@@ -12,7 +12,7 @@ void main() {
       });
     final queue = FlutterDioQueue(dio: dio);
     final future = queue.events.firstWhere((e) => e.job.state == JobState.succeeded);
-    queue.enqueueRequest(method: 'GET', url: '/');
+    queue.enqueueRequest(method: HttpMethod.get, url: '/');
     final event = await future;
     expect(event.job.state, JobState.succeeded);
   });
