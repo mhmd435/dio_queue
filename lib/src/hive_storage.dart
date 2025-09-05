@@ -1,6 +1,7 @@
 /// Persistent queue storage backed by Hive.
 import 'package:hive/hive.dart';
 
+import 'queue_config.dart';
 import 'queue_job.dart';
 import 'queue_storage.dart';
 
