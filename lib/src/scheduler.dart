@@ -147,7 +147,13 @@ class Scheduler {
     while (true) {
       await _rateLimiter.take();
       try {
-        final opts = Options(method: job.method.value, headers: job.headers);
+        final opts = Options(
+          method: job.method.value,
+          headers: job.headers,
+          contentType: job.body is FormData
+              ? Headers.multipartFormDataContentType
+              : null,
+        );
         final res = await dio.request(
           job.url,
           data: job.body,
