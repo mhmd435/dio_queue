@@ -26,6 +26,9 @@ extension RequestOptionsQueue on RequestOptions {
 
     /// How long the request is allowed to run.
     Duration? timeout,
+
+    /// Whether this should be marked as the last request.
+    bool isLastRequest = false,
   }) {
     return QueueJob(
       id: id,
@@ -38,6 +41,7 @@ extension RequestOptionsQueue on RequestOptions {
       tags: tags,
       priority: priority,
       timeout: timeout,
+      isLastRequest: isLastRequest,
     );
   }
 }
