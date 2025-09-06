@@ -31,3 +31,6 @@ The queue sets `multipart/form-data` automatically when a `FormData` body is
 detected. If the referenced file does not exist, `MultipartFile.fromFile` will
 throw a `FileSystemException`.
 
+Because `FormData` cannot be JSON encoded, these jobs are kept in memory only
+and are not persisted even when a persistent [QueueStorage] is configured.
+

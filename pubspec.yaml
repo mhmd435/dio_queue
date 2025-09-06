@@ -1,6 +1,6 @@
 name: flutter_dio_queue
 description: A robust request queue layer on top of Dio.
-version: 0.1.0
+version: 0.1.1
 publish_to: none
 
 environment:

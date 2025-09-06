@@ -76,7 +76,9 @@ class Scheduler {
     }
     _queue.add(job);
     _fingerprints[job.fingerprint] = job.id;
-    await storage.upsert(job);
+    if (config.persist && job.body is! FormData) {
+      await storage.upsert(job);
+    }
     _emitEvent(job);
     _updateMetrics();
     _trySchedule();
@@ -94,7 +96,9 @@ class Scheduler {
     }
     if (job != null) {
       job.state = JobState.cancelled;
-      await storage.delete(id);
+      if (config.persist && job.body is! FormData) {
+        await storage.delete(id);
+      }
       _emitEvent(job);
     }
     _updateMetrics();
@@ -172,7 +176,9 @@ class Scheduler {
         }
         job.state = JobState.succeeded;
         job.finishedAt = DateTime.now();
-        await storage.delete(job.id);
+        if (config.persist && job.body is! FormData) {
+          await storage.delete(job.id);
+        }
         break;
       } on DioException catch (e) {
         job.attempts++;
@@ -187,7 +193,9 @@ class Scheduler {
         }
         job.state = JobState.failed;
         job.finishedAt = DateTime.now();
-        await storage.delete(job.id);
+        if (config.persist && job.body is! FormData) {
+          await storage.delete(job.id);
+        }
         break;
       }
     }
