@@ -56,6 +56,9 @@ class QueueJob {
   /// Last error produced by the job, if any.
   Object? lastError;
 
+  /// Whether this job represents the last request in a sequence.
+  final bool isLastRequest;
+
   /// Creates a new [QueueJob].
   QueueJob({
     /// Identifier for this job.
@@ -105,6 +108,9 @@ class QueueJob {
 
     /// Last error produced.
     this.lastError,
+
+    /// Indicates if this is the last request in a batch.
+    this.isLastRequest = false,
   }) : enqueuedAt = enqueuedAt ?? DateTime.now();
 
   /// Fingerprint used for deduplication.
@@ -141,6 +147,7 @@ class QueueJob {
       'startedAt': startedAt?.toIso8601String(),
       'finishedAt': finishedAt?.toIso8601String(),
       'lastError': lastError?.toString(),
+      'isLastRequest': isLastRequest,
     };
   }
 
@@ -168,5 +175,6 @@ class QueueJob {
             ? DateTime.parse(json['finishedAt'] as String)
             : null,
         lastError: json['lastError'],
+        isLastRequest: json['isLastRequest'] as bool? ?? false,
       );
 }

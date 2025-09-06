@@ -98,6 +98,9 @@ class FlutterDioQueue {
 
     /// Timeout for the request.
     Duration? timeout,
+
+    /// Whether this job is the last request in a sequence.
+    bool isLastRequest = false,
   }) {
     final job = QueueJob(
       id: _randomId(),
@@ -110,6 +113,7 @@ class FlutterDioQueue {
       tags: tags,
       priority: priority,
       timeout: timeout,
+      isLastRequest: isLastRequest,
     );
     _scheduler.enqueue(job);
     return job.id;
