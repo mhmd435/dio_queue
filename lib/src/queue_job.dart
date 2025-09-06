@@ -1,6 +1,8 @@
 /// Data model representing a request scheduled for later execution.
 import 'dart:convert';
 
+import 'package:dio/dio.dart';
+
 import 'queue_config.dart';
 import 'http_method.dart';
 
@@ -112,31 +114,37 @@ class QueueJob {
       'm': method.value,
       'u': url,
       'h': headers,
-      'b': body,
+      // FormData cannot be JSON encoded; omit from fingerprint.
+      'b': body is FormData ? null : body,
       'q': query,
     });
     return base64Url.encode(utf8.encode(payload));
   }
 
   /// Serialises this job into a JSON compatible map.
-  Map<String, dynamic> toJson() => {
-        'id': id,
-        'method': method.value,
-        'url': url,
-        'headers': headers,
-        'body': body,
-        'query': query,
-        'idempotencyKey': idempotencyKey,
-        'tags': tags.toList(),
-        'priority': priority,
-        'timeout': timeout?.inMilliseconds,
-        'state': state.index,
-        'attempts': attempts,
-        'enqueuedAt': enqueuedAt.toIso8601String(),
-        'startedAt': startedAt?.toIso8601String(),
-        'finishedAt': finishedAt?.toIso8601String(),
-        'lastError': lastError?.toString(),
-      };
+  Map<String, dynamic> toJson() {
+    if (body is FormData) {
+      throw UnsupportedError('FormData bodies cannot be serialized');
+    }
+    return {
+      'id': id,
+      'method': method.value,
+      'url': url,
+      'headers': headers,
+      'body': body,
+      'query': query,
+      'idempotencyKey': idempotencyKey,
+      'tags': tags.toList(),
+      'priority': priority,
+      'timeout': timeout?.inMilliseconds,
+      'state': state.index,
+      'attempts': attempts,
+      'enqueuedAt': enqueuedAt.toIso8601String(),
+      'startedAt': startedAt?.toIso8601String(),
+      'finishedAt': finishedAt?.toIso8601String(),
+      'lastError': lastError?.toString(),
+    };
+  }
 
   /// Creates a [QueueJob] from previously serialised JSON.
   static QueueJob fromJson(Map<String, dynamic> json) => QueueJob(
