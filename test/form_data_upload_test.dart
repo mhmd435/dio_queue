@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:dio/dio.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_dio_queue/flutter_dio_queue.dart';
+import 'package:hive_test/hive_test.dart';
 
 import 'test_utils.dart';
 
@@ -62,6 +63,36 @@ void main() {
       () async => MultipartFile.fromFile('does_not_exist.txt'),
       throwsA(isA<FileSystemException>()),
     );
+  });
+
+  test('does not persist FormData bodies', () async {
+    await setUpTestHive();
+
+    late RequestOptions captured;
+    final dio = Dio()
+      ..httpClientAdapter = TestAdapter((req) async {
+        captured = req;
+        return ResponseBody.fromString('ok', 200);
+      });
+
+    final storage = HiveQueueStorage(boxName: 'jobs');
+    final queue = FlutterDioQueue(
+      dio: dio,
+      storage: storage,
+      config: const QueueConfig(persist: true),
+    );
+    final formData = FormData.fromMap({
+      'file': MultipartFile.fromBytes(utf8.encode('hi'), filename: 'hi.txt'),
+    });
+
+    final future =
+        queue.events.firstWhere((e) => e.job.state == JobState.succeeded);
+    queue.enqueueRequest(method: HttpMethod.post, url: '/upload', data: formData);
+    final event = await future;
+
+    expect(event.response?.statusCode, 200);
+    expect(captured.data, isA<FormData>());
+    expect(await storage.getAll(), isEmpty);
   });
 }
 
