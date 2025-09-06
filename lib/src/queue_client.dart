@@ -45,7 +45,7 @@ class FlutterDioQueue {
           connectivity: connectivity,
           logger: logger,
         ) {
-    this.storage.init();
+    unawaited(this.storage.init());
   }
 
   /// Stream of job state change events.
