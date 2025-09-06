@@ -123,15 +123,13 @@ class QueueJob {
 
   /// Serialises this job into a JSON compatible map.
   Map<String, dynamic> toJson() {
-    if (body is FormData) {
-      throw UnsupportedError('FormData bodies cannot be serialized');
-    }
     return {
       'id': id,
       'method': method.value,
       'url': url,
       'headers': headers,
-      'body': body,
+      // FormData cannot be JSON encoded; omit from serialization.
+      'body': body is FormData ? null : body,
       'query': query,
       'idempotencyKey': idempotencyKey,
       'tags': tags.toList(),
