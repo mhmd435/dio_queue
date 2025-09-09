@@ -94,5 +94,38 @@ void main() {
     expect(captured.data, isA<FormData>());
     expect(await storage.getAll(), isEmpty);
   });
+
+  test('queues multiple FormData uploads in FIFO order', () async {
+    final processed = <String>[];
+    final dio = Dio()
+      ..httpClientAdapter = TestAdapter((req) async {
+        final form = req.data as FormData;
+        final id = form.fields.firstWhere((f) => f.key == 'id').value;
+        processed.add(id);
+        return ResponseBody.fromString('ok', 200);
+      });
+
+    final queue = FlutterDioQueue(
+      dio: dio,
+      config: const QueueConfig(maxConcurrent: 1),
+    );
+
+    queue.enqueueRequest(
+        method: HttpMethod.post,
+        url: '/upload',
+        data: FormData.fromMap({'id': '1'}));
+    queue.enqueueRequest(
+        method: HttpMethod.post,
+        url: '/upload',
+        data: FormData.fromMap({'id': '2'}));
+    queue.enqueueRequest(
+        method: HttpMethod.post,
+        url: '/upload',
+        data: FormData.fromMap({'id': '3'}));
+
+    await Future.delayed(const Duration(milliseconds: 100));
+
+    expect(processed, ['1', '2', '3']);
+  });
 }
 

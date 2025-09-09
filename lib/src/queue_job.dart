@@ -120,8 +120,9 @@ class QueueJob {
       'm': method.value,
       'u': url,
       'h': headers,
-      // FormData cannot be JSON encoded; omit from fingerprint.
-      'b': body is FormData ? null : body,
+      // Use the object hash for FormData to avoid dedup collisions while
+      // still producing a stable fingerprint for identical instances.
+      'b': body is FormData ? body.hashCode : body,
       'q': query,
     });
     return base64Url.encode(utf8.encode(payload));

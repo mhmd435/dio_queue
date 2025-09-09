@@ -81,7 +81,7 @@ class QueueConfig {
 
   /// Creates a new [QueueConfig] with optional overrides.
   const QueueConfig({
-    this.maxConcurrent = 2,
+    this.maxConcurrent = 1,
     this.policy = QueuePolicy.fifo,
     this.retry = const RetryPolicy(),
     this.rateLimit,
