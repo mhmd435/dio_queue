@@ -41,6 +41,7 @@ class Scheduler {
 
   bool _paused = false;
   bool _online = true;
+  bool _started;
 
   /// Creates a new scheduler instance.
   Scheduler({
@@ -50,7 +51,8 @@ class Scheduler {
     QueueLogger? logger,
     this.connectivity,
   })  : logger = logger ?? ConsoleQueueLogger(),
-        _rateLimiter = RateLimiter(config.rateLimit) {
+        _rateLimiter = RateLimiter(config.rateLimit),
+        _started = config.autoStart {
     connectivity?.onStatus.listen((online) {
       _online = online;
       if (online && config.retry.resetOnNetworkChange) {
@@ -112,6 +114,13 @@ class Scheduler {
     }
   }
 
+  /// Starts processing queued jobs if the scheduler was configured with
+  /// [QueueConfig.autoStart] set to `false`.
+  void start() {
+    _started = true;
+    _trySchedule();
+  }
+
   /// Pauses scheduling new jobs; running jobs continue.
   void pause() {
     _paused = true;
@@ -123,8 +132,16 @@ class Scheduler {
     _trySchedule();
   }
 
+  /// Waits for all queued and running jobs to complete.
+  Future<void> drain() async {
+    if (_queue.isEmpty && _running.isEmpty) return;
+    await _metrics.stream.firstWhere(
+      (m) => m.queued == 0 && m.running == 0,
+    );
+  }
+
   void _trySchedule() {
-    if (_paused || !_online) return;
+    if (!_started || _paused || !_online) return;
     _queue.sort((a, b) {
       final p = b.priority.compareTo(a.priority);
       if (p != 0) return p;

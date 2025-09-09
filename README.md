@@ -40,6 +40,7 @@ final queue = FlutterDioQueue(
   config: QueueConfig(
     maxConcurrent: 3,
     policy: QueuePolicy.fifo,
+    autoStart: true,
     retry: RetryPolicy(
       maxAttempts: 4,
       baseDelay: const Duration(milliseconds: 400),
@@ -64,6 +65,14 @@ queue.events.listen((e) {
     debugPrint('Response data: ${e.response!.data}');
   }
 });
+
+// When `autoStart` is set to `false`, explicitly start processing:
+// queue.start();
+
+// You can also pause/resume or wait for completion with:
+// queue.pause();
+// queue.resume();
+// await queue.drain();
 ```
 
 ## Interceptor
