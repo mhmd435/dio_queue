@@ -45,4 +45,32 @@ void main() {
     await Future.delayed(const Duration(milliseconds: 200));
     expect(max, lessThanOrEqualTo(2));
   });
+
+  test('auto start disabled processes in LIFO order after start', () async {
+    final dio = Dio()
+      ..httpClientAdapter = TestAdapter((req) async {
+        await Future.delayed(const Duration(milliseconds: 10));
+        return ResponseBody.fromString(req.path, 200);
+      });
+    final queue = FlutterDioQueue(
+      dio: dio,
+      config: const QueueConfig(
+        maxConcurrent: 1,
+        policy: QueuePolicy.lifo,
+        autoStart: false,
+      ),
+    );
+    final completed = <String>[];
+    queue.events
+        .where((e) => e.job.state == JobState.succeeded)
+        .listen((e) => completed.add(e.job.url));
+    queue.enqueueRequest(method: HttpMethod.get, url: 'a');
+    queue.enqueueRequest(method: HttpMethod.get, url: 'b');
+    // Nothing should run until start is invoked.
+    await Future.delayed(const Duration(milliseconds: 50));
+    expect(completed, isEmpty);
+    queue.start();
+    await queue.drain();
+    expect(completed, ['b', 'a']);
+  });
 }

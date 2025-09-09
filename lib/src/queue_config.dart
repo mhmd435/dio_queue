@@ -79,6 +79,13 @@ class QueueConfig {
   /// Optional time-to-live for completed jobs.
   final Duration? jobTTL;
 
+  /// Whether the queue should begin processing immediately when jobs
+  /// are enqueued.
+  ///
+  /// When `false`, jobs will remain in the pending state until
+  /// [FlutterDioQueue.start] is called.
+  final bool autoStart;
+
   /// Creates a new [QueueConfig] with optional overrides.
   const QueueConfig({
     this.maxConcurrent = 1,
@@ -88,5 +95,6 @@ class QueueConfig {
     this.deduplicate = true,
     this.persist = false,
     this.jobTTL,
+    this.autoStart = true,
   });
 }

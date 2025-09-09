@@ -63,11 +63,17 @@ class FlutterDioQueue {
   /// Cancels all jobs tagged with [tag].
   Future<void> cancelByTag(String tag) => _scheduler.cancelByTag(tag);
 
+  /// Starts processing of queued jobs when [QueueConfig.autoStart] is `false`.
+  void start() => _scheduler.start();
+
   /// Pauses scheduling of new jobs; running jobs continue.
   void pause() => _scheduler.pause();
 
   /// Resumes scheduling after a pause.
   void resume() => _scheduler.resume();
+
+  /// Waits for the queue to become idle (no queued or running jobs).
+  Future<void> drain() => _scheduler.drain();
 
   /// Convenience builder to enqueue a request without manually constructing a
   /// [QueueJob].
