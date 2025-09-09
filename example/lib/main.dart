@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:dio/dio.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 import 'package:flutter_dio_queue/flutter_dio_queue.dart';
 
-void main() {
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await Hive.initFlutter();
   runApp(const MyApp());
 }
 
@@ -22,7 +25,10 @@ class _MyAppState extends State<MyApp> {
   void initState() {
     super.initState();
     final dio = Dio(BaseOptions(baseUrl: 'https://httpbin.org'));
-    queue = FlutterDioQueue(dio: dio);
+    queue = FlutterDioQueue(
+      dio: dio,
+      storage: HiveQueueStorage(boxName: 'fdq_jobs'),
+    );
     queue.events.listen((e) {
       setState(() {
         events.add(e.toString());

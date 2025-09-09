@@ -1,3 +1,9 @@
+## 0.1.3
+
+- Surface a clearer error when Hive hasn't been initialized before using
+  `HiveQueueStorage` and document the requirement.
+- Initialize Hive in the example and expand documentation for `HiveQueueStorage`.
+
 ## 0.1.2
 
 - Allow `QueueJob.toJson` to handle `FormData` bodies by omitting them instead of throwing.
