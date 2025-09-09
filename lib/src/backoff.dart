@@ -1,4 +1,6 @@
 /// Utilities for computing retry backoff delays.
+library backoff;
+
 import 'dart:math';
 
 import 'queue_config.dart';
