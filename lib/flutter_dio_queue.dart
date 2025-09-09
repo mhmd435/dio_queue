@@ -1,5 +1,4 @@
-/// Flutter bindings and exports for the dio queue package.
-library flutter_dio_queue;
+// Flutter bindings and exports for the dio queue package.
 
 export 'src/queue_client.dart';
 export 'src/queue_config.dart';
