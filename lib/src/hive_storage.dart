@@ -1,4 +1,3 @@
-/// Persistent queue storage backed by Hive.
 import 'package:hive/hive.dart';
 
 import 'queue_config.dart';
@@ -22,7 +21,7 @@ class HiveQueueStorage implements QueueStorage {
     return _init ??= () async {
       try {
         _box = await Hive.openBox<Map>(boxName);
-      } on NoSuchMethodError catch (e) {
+      } on NoSuchMethodError catch (_) {
         throw StateError(
           'Hive is not initialized. Call Hive.initFlutter() or Hive.init() before using HiveQueueStorage.',
         );
