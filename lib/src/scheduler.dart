@@ -207,6 +207,7 @@ class Scheduler {
   }
 
   void _emitEvent(QueueJob job, [Response? response]) {
+    logger.log('Job ${job.id} -> ${job.state.name}');
     _events.add(QueueEvent(job, response));
   }
 
