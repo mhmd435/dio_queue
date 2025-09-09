@@ -1,5 +1,5 @@
 /// Monitors network connectivity changes and exposes an online/offline stream.
-library connectivity_watcher;
+library;
 
 import 'dart:async';
 

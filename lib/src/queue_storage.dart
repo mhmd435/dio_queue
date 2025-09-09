@@ -1,5 +1,5 @@
 /// Interface describing storage for persisted queue jobs.
-library queue_storage;
+library;
 
 import 'queue_config.dart';
 import 'queue_job.dart';

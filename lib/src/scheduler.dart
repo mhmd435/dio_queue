@@ -1,5 +1,5 @@
 /// Core scheduler responsible for executing queued jobs.
-library scheduler;
+library;
 
 import 'dart:async';
 

@@ -1,5 +1,5 @@
 /// Utilities for computing retry backoff delays.
-library backoff;
+library;
 
 import 'dart:math';
 
