@@ -6,7 +6,7 @@ import 'package:flutter_dio_queue/flutter_dio_queue.dart';
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Hive.initFlutter();
-  runApp(const MyApp());
+  runApp(const ExampleApp());
 }
 
 class ExampleApp extends StatefulWidget {
