@@ -19,9 +19,15 @@ class HiveQueueStorage implements QueueStorage {
   @override
   /// Opens the Hive box.
   Future<void> init() {
-    return _init ??= Hive.openBox<Map>(boxName).then((box) {
-      _box = box;
-    });
+    return _init ??= () async {
+      try {
+        _box = await Hive.openBox<Map>(boxName);
+      } on NoSuchMethodError catch (e) {
+        throw StateError(
+          'Hive is not initialized. Call Hive.initFlutter() or Hive.init() before using HiveQueueStorage.',
+        );
+      }
+    }();
   }
 
   Future<Box<Map>> _getBox() async {
