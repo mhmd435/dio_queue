@@ -1,6 +1,7 @@
 /// Core scheduler responsible for executing queued jobs.
+library scheduler;
+
 import 'dart:async';
-import 'dart:math';
 
 import 'package:dio/dio.dart';
 
