@@ -1,3 +1,4 @@
+import 'package:flutter_dio_queue/src/rate_limiter.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_dio_queue/flutter_dio_queue.dart';
 
