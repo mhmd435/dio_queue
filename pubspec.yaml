@@ -1,5 +1,5 @@
 name: flutter_dio_queue
-description: A robust request queue layer on top of Dio.
+description: Provides a resilient request queue layer for Dio, persisting offline requests and retrying them to ensure reliable network operations in Flutter apps.
 
 repository: https://github.com/mhmd435/dio_queue
 homepage: https://github.com/mhmd435/dio_queue
