@@ -1,3 +1,7 @@
+## 0.1.4
+
+- Fix pubspec.yaml description field
+
 ## 0.1.3
 
 - Surface a clearer error when Hive hasn't been initialized before using
