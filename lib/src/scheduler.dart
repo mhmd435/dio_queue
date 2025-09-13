@@ -1,0 +1,240 @@
+/// Core scheduler responsible for executing queued jobs.
+library;
+
+import 'dart:async';
+
+import 'package:dio/dio.dart';
+
+import 'backoff.dart';
+import 'connectivity_watcher.dart';
+import 'logger.dart';
+import 'metrics.dart';
+import 'queue_config.dart';
+import 'queue_event.dart';
+import 'queue_job.dart';
+import 'queue_storage.dart';
+import 'rate_limiter.dart';
+import 'http_method.dart';
+
+class Scheduler {
+  /// Dio client used to perform HTTP requests.
+  final Dio dio;
+
+  /// Storage backend for persisting jobs between runs.
+  final QueueStorage storage;
+
+  /// Behavioural options for scheduling and retry.
+  final QueueConfig config;
+
+  /// Logger used for diagnostic output.
+  final QueueLogger logger;
+
+  /// Optional connectivity watcher to pause when offline.
+  final ConnectivityWatcher? connectivity;
+
+  final RateLimiter _rateLimiter;
+  final StreamController<QueueEvent> _events = StreamController.broadcast();
+  final StreamController<QueueMetrics> _metrics = StreamController.broadcast();
+
+  final List<QueueJob> _queue = [];
+  final Map<String, CancelToken> _running = {};
+  final Map<String, String> _fingerprints = {};
+
+  bool _paused = false;
+  bool _online = true;
+  bool _started;
+
+  /// Creates a new scheduler instance.
+  Scheduler({
+    required this.dio,
+    required this.storage,
+    required this.config,
+    QueueLogger? logger,
+    this.connectivity,
+  })  : logger = logger ?? ConsoleQueueLogger(),
+        _rateLimiter = RateLimiter(config.rateLimit),
+        _started = config.autoStart {
+    connectivity?.onStatus.listen((online) {
+      _online = online;
+      if (online && config.retry.resetOnNetworkChange) {
+        for (final job in _queue) {
+          job.attempts = 0;
+        }
+      }
+      _trySchedule();
+    });
+  }
+
+  /// Stream of job state change events.
+  Stream<QueueEvent> get events => _events.stream;
+
+  /// Stream of queue metrics updates.
+  Stream<QueueMetrics> get metrics => _metrics.stream;
+
+  /// Adds [job] to the queue and returns its id.
+  Future<String> enqueue(QueueJob job) async {
+    if (config.deduplicate) {
+      final existing = _fingerprints[job.fingerprint];
+      if (existing != null) return existing;
+    }
+    _queue.add(job);
+    _fingerprints[job.fingerprint] = job.id;
+    if (config.persist && job.body is! FormData) {
+      await storage.upsert(job);
+    }
+    _emitEvent(job);
+    _updateMetrics();
+    _trySchedule();
+    return job.id;
+  }
+
+  /// Cancels the job identified by [id].
+  Future<void> cancel(String id) async {
+    final token = _running.remove(id);
+    token?.cancel();
+    final idx = _queue.indexWhere((j) => j.id == id);
+    QueueJob? job;
+    if (idx != -1) {
+      job = _queue.removeAt(idx);
+    }
+    if (job != null) {
+      job.state = JobState.cancelled;
+      if (config.persist && job.body is! FormData) {
+        await storage.delete(id);
+      }
+      _emitEvent(job);
+    }
+    _updateMetrics();
+  }
+
+  /// Cancels all jobs carrying the specified [tag].
+  Future<void> cancelByTag(String tag) async {
+    final ids = _queue.where((j) => j.tags.contains(tag)).map((j) => j.id).toList();
+    for (final id in ids) {
+      await cancel(id);
+    }
+  }
+
+  /// Starts processing queued jobs if the scheduler was configured with
+  /// [QueueConfig.autoStart] set to `false`.
+  void start() {
+    _started = true;
+    _trySchedule();
+  }
+
+  /// Pauses scheduling new jobs; running jobs continue.
+  void pause() {
+    _paused = true;
+  }
+
+  /// Resumes scheduling after a pause.
+  void resume() {
+    _paused = false;
+    _trySchedule();
+  }
+
+  /// Waits for all queued and running jobs to complete.
+  Future<void> drain() async {
+    if (_queue.isEmpty && _running.isEmpty) return;
+    await _metrics.stream.firstWhere(
+      (m) => m.queued == 0 && m.running == 0,
+    );
+  }
+
+  void _trySchedule() {
+    if (!_started || _paused || !_online) return;
+    _queue.sort((a, b) {
+      final p = b.priority.compareTo(a.priority);
+      if (p != 0) return p;
+      return config.policy == QueuePolicy.fifo
+          ? a.enqueuedAt.compareTo(b.enqueuedAt)
+          : b.enqueuedAt.compareTo(a.enqueuedAt);
+    });
+    while (_running.length < config.maxConcurrent && _queue.isNotEmpty) {
+      final job = _queue.removeAt(0);
+      _run(job);
+    }
+    _updateMetrics();
+  }
+
+  Future<void> _run(QueueJob job) async {
+    final token = CancelToken();
+    _running[job.id] = token;
+    job.state = JobState.running;
+    job.startedAt = DateTime.now();
+    _emitEvent(job);
+    _updateMetrics();
+
+    Response? response;
+    while (true) {
+      await _rateLimiter.take();
+      try {
+        final opts = Options(
+          method: job.method.value,
+          headers: job.headers,
+          contentType: job.body is FormData
+              ? Headers.multipartFormDataContentType
+              : null,
+        );
+        final res = await dio.request(
+          job.url,
+          data: job.body,
+          queryParameters: job.query,
+          options: opts,
+          cancelToken: token,
+        );
+        job.attempts++;
+        response = res;
+        if (config.retry.shouldRetry(res, null) &&
+            job.attempts < config.retry.maxAttempts) {
+          final delay = computeBackoff(config.retry, job.attempts);
+          logger.log('Retrying ${job.id} in ${delay.inMilliseconds}ms');
+          await Future.delayed(delay);
+          continue;
+        }
+        job.state = JobState.succeeded;
+        job.finishedAt = DateTime.now();
+        if (config.persist && job.body is! FormData) {
+          await storage.delete(job.id);
+        }
+        break;
+      } on DioException catch (e) {
+        job.attempts++;
+        job.lastError = e;
+        response = e.response;
+        if (config.retry.shouldRetry(e.response, e) &&
+            job.attempts < config.retry.maxAttempts) {
+          final delay = computeBackoff(config.retry, job.attempts);
+          logger.log('Retrying ${job.id} after error in ${delay.inMilliseconds}ms');
+          await Future.delayed(delay);
+          continue;
+        }
+        job.state = JobState.failed;
+        job.finishedAt = DateTime.now();
+        if (config.persist && job.body is! FormData) {
+          await storage.delete(job.id);
+        }
+        break;
+      }
+    }
+    _running.remove(job.id);
+    _fingerprints.remove(job.fingerprint);
+    _emitEvent(job, response);
+    _updateMetrics();
+    _trySchedule();
+  }
+
+  void _emitEvent(QueueJob job, [Response? response]) {
+    logger.log('Job ${job.id} -> ${job.state.name}');
+    _events.add(QueueEvent(job, response));
+  }
+
+  void _updateMetrics() {
+    _metrics.add(
+      QueueMetrics(
+        queued: _queue.length,
+        running: _running.length,
+      ),
+    );
+  }
+}
